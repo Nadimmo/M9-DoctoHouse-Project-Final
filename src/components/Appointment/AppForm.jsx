@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import useAxiosSecure from '../Hooks/useAxiosSecure';
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import Swal from "sweetalert2";
+import useAxiosSecure from "../Hooks/useAxiosSecure";
 
-const AppForm = (appointment) => {
+const AppForm = ({ appointment }) => {
   const axiosSecure = useAxiosSecure();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,39 +22,35 @@ const AppForm = (appointment) => {
 
   const onSubmit = async (data) => {
     const formData = {
-      ...data,
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      service: data.service || appointment.service, // Use either user input or default value
+      price: data.price || appointment.price, // Use either user input or default value
       date: currentDateTime.toLocaleDateString(),
       time: currentDateTime.toLocaleTimeString(),
     };
 
-    // Log formData before sending
-    // console.log('FormData before sending:', formData);
+    try {
+      const response = await axiosSecure.post("/Newappointments", formData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-    // Convert formData to JSON string
-    const jsonString = JSON.stringify(formData);
-
-    // Send data to the server
-    axiosSecure.post('/Newappointments', jsonString, {
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(res => {
-      // console.log(res.data);
-      if (res.data.insertedId) {
+      if (response.data.insertedId) {
         reset(); // Reset the form
         Swal.fire({
           icon: "success",
           title: "Submission Successful!",
-          text: "Your review has been submitted.",
+          text: "Your appointment has been submitted.",
         });
       }
-    })
-    .catch(err => {
+    } catch (err) {
       Swal.fire({
         icon: "error",
-        title: `${err.message} Failed`,
+        title: `Submission Failed: ${err.message}`,
         text: "Please try again later.",
       });
-    });
+    }
   };
 
   return (
@@ -81,41 +81,56 @@ const AppForm = (appointment) => {
           <label className="block text-sm font-medium text-gray-700">Name</label>
           <input
             type="text"
-            {...register('name', { required: 'Name is required' })}
+            {...register("name", { required: "Name is required" })}
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
-          {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
         {/* Phone Number Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Phone Number</label>
           <input
             type="tel"
-            {...register('phone', { required: 'Phone number is required' })}
+            {...register("phone", { required: "Phone number is required" })}
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
-          {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>}
+          {errors.phone && (
+            <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>
+          )}
         </div>
         {/* Email Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
-            {...register('email', { required: 'Email is required' })}
+            {...register("email", { required: "Email is required" })}
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
-          {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
+          )}
         </div>
         {/* Service Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Service</label>
           <input
-            defaultValue={appointment.appointment?.service}
             type="text"
-            {...register('service', { required: 'Service is required' })}
+            defaultValue={appointment?.service}
+            {...register("service")}
             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
-          {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
+        </div>
+        {/* Price Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Price</label>
+          <input
+            type="text"
+            defaultValue={appointment?.price}
+            {...register("price")}
+            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
         </div>
         {/* Submit Button */}
         <button
