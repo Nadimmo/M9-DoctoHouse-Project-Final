@@ -2,12 +2,19 @@ import useNewAppointment from "../../Hooks/useNewAppointment";
 
 const NewAppointment = () => {
   const { newAppointments } = useNewAppointment();
+  const totalPrice = newAppointments.reduce((accumulator,price) => accumulator + parseFloat(price.price) ,0)
+  
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="lg:flex justify-between">
       <h1 className="text-2xl font-bold text-left text-gray-800 mb-4">
         My Appointments: {newAppointments.length}
       </h1>
+      <h1 className="text-2xl font-bold text-left text-gray-800 mb-4">
+        Total Price: $ {totalPrice}
+      </h1>
+      </div>
       <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
         <table className="table-auto w-full">
           {/* Table Header */}
