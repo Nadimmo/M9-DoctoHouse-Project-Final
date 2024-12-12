@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import useNewAppointment from "../../Hooks/useNewAppointment";
 
 const NewAppointment = () => {
-  const { newAppointments } = useNewAppointment();
+  const { newAppointments, refetch } = useNewAppointment();
   const totalPrice = newAppointments.reduce((accumulator,price) => accumulator + parseFloat(price.price) ,0)
   
 
@@ -15,7 +15,7 @@ const NewAppointment = () => {
       <h1 className="text-2xl font-bold text-left text-gray-800 mb-4">
         Total Price: $ {totalPrice}
       </h1>
-      <Link to={'/dashboard/payment'} className="text-2xl font-bold text-left text-gray-800 mb-4">
+      <Link to={'/dashboard/payment'} className=" btn bg-sky-500 font-bold text-left text-gray-800 mb-4">
         Payment
       </Link>
       </div>
@@ -29,7 +29,6 @@ const NewAppointment = () => {
               <th className="px-4 py-3 text-left">Date</th>
               <th className="px-4 py-3 text-left">Time</th>
               <th className="px-4 py-3 text-left">Treatment</th>
-              <th className="px-4 py-3 text-left">Payment</th>
             </tr>
           </thead>
 
@@ -43,11 +42,7 @@ const NewAppointment = () => {
                   <td className="px-4 py-3 text-gray-700">{item.date}</td>
                   <td className="px-4 py-3 text-gray-700">{item.time}</td>
                   <td className="px-4 py-3 text-gray-700">{item.service}</td>
-                  <td className="px-4 py-3">
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300">
-                      Pay
-                    </button>
-                  </td>
+                
                 </tr>
               ))
             ) : (

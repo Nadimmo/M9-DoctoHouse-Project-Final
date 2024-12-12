@@ -1,150 +1,147 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useContext, useEffect, useState } from "react";
-import { json } from "react-router-dom";
+import Swal from "sweetalert2";
 import useNewAppointment from "./../../Hooks/useNewAppointment";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { AuthContext } from "../../../AuthProvider/AuthProvider";
-import useAxiosPublic from "../../Hooks/useAxiosPublic";
-import Swal from "sweetalert2";
 
 const CheckoutForm = () => {
   const stripe = useStripe();
   const elements = useElements();
-  const {user} = useContext(AuthContext)
-  const axiosSecure = useAxiosSecure();
-  const axiosPublic = useAxiosPublic()
-  const [transactionId, setTransactionId] = useState("")
+  const { user } = useContext(AuthContext);
+  const axiosSecure = useAxiosSecure()
+  const [transactionId, setTransactionId] = useState("");
   const [cartError, setError] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const { newAppointments } = useNewAppointment();
+
   const totalPrice = newAppointments.reduce(
-    (accumulator, price) => accumulator + parseFloat(price.price),
+    (accumulator, appointment) => accumulator + parseFloat(appointment.price),
     0
   );
-// console.log(clientSecret)
-  //create payment intent
-  //   useEffect(()=>{
-  //     fetch('/create-payment-intent',{
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: json.stringify(totalPrice)
-  //     })
-  //     .then(res =>{
-  //         res.json()
-  //     })
-  //     .then((data)=>{
-  //         setClientSecret(data.clientSecret)
-  //     })
-  //   },[])
-//create payment intent
+
+  // Create payment intent
   useEffect(() => {
     if (totalPrice > 0) {
-      axiosPublic.post("/create-payment-intent", {price: totalPrice }).then((res) => {
-        setClientSecret(res.data.clientSecret);
-      });
+      axiosSecure
+        .post("/create-payment-intent", { price: totalPrice })
+        .then((res) => {
+          setClientSecret(res.data.clientSecret);
+        });
     }
-  }, [totalPrice,axiosSecure]);
+  }, [totalPrice, axiosPublic]);
 
   const handleSubmit = async (event) => {
-    // Block native form submission.
     event.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js has not loaded yet. Make sure to disable
-      // form submission until Stripe.js has loaded.
       return;
     }
 
-    // Get a reference to a mounted CardElement. Elements knows how
-    // to find your CardElement because there can only ever be one of
-    // each type of element.
     const card = elements.getElement(CardElement);
 
     if (card == null) {
       return;
     }
 
-    // Use your card Element with other Stripe.js APIs
     const { error, paymentMethod } = await stripe.createPaymentMethod({
       type: "card",
       card,
+      billing_details: {
+        name: user?.displayName || "Anonymous",
+        email: user?.email || "anonymous",
+      },
     });
 
     if (error) {
       setError(error.message);
+      return;
     } else {
-    //   console.log("[PaymentMethod]", paymentMethod);
       setError("");
     }
-    //create payment intent
-    const {paymentIntent, error: cartError} = await stripe.confirmCardPayment(
-        clientSecret,{
-            payment_method:{
-                card: card,
-                billing_details:{
-                    name: user?.displayName || 'anonymous',
-                    email: user?.email || 'anonymous'
-                }
-            }
-        }
-      )
 
-      //send data in database 
-    if (cartError) {
-        console.log("error", cartError);
-      } else {
-        if (paymentIntent.status === "succeeded") {
-          setTransactionId(paymentIntent.id);
-  
-          const payment = {
-            email: user.email,
-            price: totalPrice,
-            transactionId: paymentIntent.id,
-          };
-  
-          const res = await axiosPublic.post("/payments", payment);
-          console.log(res.data)
-  
-          if (res.data?.paymentResult?.insertedId) {
-            Swal.fire({
-              position: "top-end",
-              icon: "success",
-              title: `Payment Successfully`,
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          }
-        }
+    const { paymentIntent, error: confirmError } =
+      await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: card,
+          billing_details: {
+            name: user?.displayName || "Anonymous",
+            email: user?.email || "anonymous",
+          },
+        },
+      });
+
+    if (confirmError) {
+      setError(confirmError.message);
+      return;
+    }
+
+    if (paymentIntent?.status === "succeeded") {
+      setTransactionId(paymentIntent.id);
+
+      const payment = {
+        email: user?.email,
+        price: totalPrice,
+        transactionId: paymentIntent.id,
+      };
+
+      const res = await axiosSecure.post("/payments", payment);
+
+      if (res.data?.insertedId) {
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          title: "Payment Successful",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       }
-
-
+    }
   };
 
   return (
-    <div>
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+        Secure Checkout
+      </h2>
+      <p className="text-center text-gray-600 mb-6">
+        Complete your payment securely using your card details below.
+      </p>
       <form onSubmit={handleSubmit}>
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: "16px",
-                color: "#424770",
-                "::placeholder": {
-                  color: "#aab7c4",
+        <div className="mb-4">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: "16px",
+                  color: "#495057",
+                  fontFamily: "Arial, sans-serif",
+                  "::placeholder": {
+                    color: "#6c757d",
+                  },
+                },
+                invalid: {
+                  color: "#dc3545",
                 },
               },
-              invalid: {
-                color: "#9e2146",
-              },
-            },
-          }}
-        />
-        <button type="submit" disabled={!stripe}>
-          Pay
+            }}
+            className="p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!stripe || !clientSecret}
+          className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          Pay ${totalPrice.toFixed(2)}
         </button>
       </form>
-      <p className="text-lg bg-red-500">{cartError}</p>
-      <p className="text-lg bg-green-500">{transactionId}</p>
+      {cartError && <p className="mt-4 text-red-600">{cartError}</p>}
+      {transactionId && (
+        <p className="mt-4 text-green-600">
+          Payment Successful! Transaction ID: {transactionId}
+        </p>
+      )}
     </div>
   );
 };

@@ -8,14 +8,14 @@ const useNewAppointment = () => {
     const axiosSecure = useAxiosSecure()
     // const axiosPublic = useAxiosPublic()
     const {user} = useContext(AuthContext)
-    const {data: newAppointments = []} = useQuery({
+    const {refetch,data: newAppointments = []} = useQuery({
         queryKey: ["newAppointments ",user?.email],
         queryFn: async()=>{
             const res = await axiosSecure.get(`/Newappointments?email=${user?.email}`)
             return res.data
         }
     })
-    return {newAppointments}
+    return {newAppointments, refetch}
 };
 
 export default useNewAppointment;
