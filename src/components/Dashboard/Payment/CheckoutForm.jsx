@@ -29,7 +29,7 @@ const CheckoutForm = () => {
           setClientSecret(res.data.clientSecret);
         });
     }
-  }, [totalPrice, axiosPublic]);
+  }, [totalPrice, axiosSecure]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -82,12 +82,15 @@ const CheckoutForm = () => {
       const payment = {
         email: user?.email,
         price: totalPrice,
+        date: new Date(),
         transactionId: paymentIntent.id,
+        newAppointmentIds: newAppointments.map(appointment=> appointment._id ),
+        status: "pending"
       };
 
       const res = await axiosSecure.post("/payments", payment);
 
-      if (res.data?.insertedId) {
+      if (res.data?.paymentResult?.insertedId) {
         Swal.fire({
           position: "top-end",
           icon: "success",
