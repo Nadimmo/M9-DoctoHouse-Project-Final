@@ -19,6 +19,7 @@ import AdminRoute from "../PrivateRoute/AdminRoute";
 import Contact from "../components/Home/Contact/Contact";
 import UserRequest from "../components/Dashboard/UserRequest/UserRequest";
 import PaymentHistory from "../components/Dashboard/PaymentHistory/PaymentHistory";
+import Payment from "../components/Dashboard/Payment/Payment";
 
 const Router = createBrowserRouter([
   {
@@ -105,6 +106,10 @@ const Router = createBrowserRouter([
       {
         path: 'paymentHistory',
         element: <PaymentHistory></PaymentHistory>
+      },
+      {
+        path: 'payment',
+        element: <Payment></Payment>
       }
     ],
   },

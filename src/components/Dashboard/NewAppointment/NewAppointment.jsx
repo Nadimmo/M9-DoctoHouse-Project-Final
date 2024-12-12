@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import useNewAppointment from "../../Hooks/useNewAppointment";
 
 const NewAppointment = () => {
@@ -14,6 +15,9 @@ const NewAppointment = () => {
       <h1 className="text-2xl font-bold text-left text-gray-800 mb-4">
         Total Price: $ {totalPrice}
       </h1>
+      <Link to={'/dashboard/payment'} className="text-2xl font-bold text-left text-gray-800 mb-4">
+        Payment
+      </Link>
       </div>
       <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
         <table className="table-auto w-full">
