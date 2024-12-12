@@ -38,6 +38,8 @@ const AuthProvider = ({ children }) => {
   const LogOut = () => {
     setLoading(true);
     return signOut(auth);
+    localStorage.removeItem('access-token')
+
   };
 
   const ProfileUpdate = (name) => {
