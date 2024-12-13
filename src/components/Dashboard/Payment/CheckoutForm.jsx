@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import useNewAppointment from "./../../Hooks/useNewAppointment";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import { AuthContext } from "../../../AuthProvider/AuthProvider";
+import { useNavigate } from "react-router-dom";
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -14,6 +15,7 @@ const CheckoutForm = () => {
   const [cartError, setError] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const { newAppointments } = useNewAppointment();
+  const navigate = useNavigate()
 
   const totalPrice = newAppointments.reduce(
     (accumulator, appointment) => accumulator + parseFloat(appointment.price),
@@ -98,6 +100,7 @@ const CheckoutForm = () => {
           showConfirmButton: false,
           timer: 1500,
         });
+        navigate('/dashboard/paymentHistory')
       }
     }
   };
