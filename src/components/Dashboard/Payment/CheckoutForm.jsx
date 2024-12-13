@@ -83,6 +83,7 @@ const CheckoutForm = () => {
 
       const payment = {
         email: user?.email,
+        name: user?.displayName,
         price: totalPrice,
         date: new Date(),
         transactionId: paymentIntent.id,
